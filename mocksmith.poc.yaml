@@ -1,0 +1,45 @@
+project: demo
+base_url: http://localhost:8787/mock/demo/dev
+api_key: DEMO_KEY
+rate_limit: { requests_per_minute: 60 }
+env: { market: IN }
+
+routes:
+  - method: GET
+    path_template: /users/:id
+    strict: false
+    scenarios:
+      - name: ok-active
+        priority: 10
+        match: { query: { status: { $eq: active } } }
+        status: 200
+        headers: { "x-market": "{{env.market}}" }
+        body: { id: "{{params.id}}", name: "Rupesh", tier: "pro" }
+      - name: ok-default
+        priority: 20
+        weight: 2
+        status: 200
+        body: { id: "{{params.id}}", name: "Guest", tier: "free" }
+
+  - method: POST
+    path_template: /orders
+    strict: true
+    schemas:
+      request_jsonschema: |
+        { "type":"object","properties":{
+            "items":{"type":"array","items":{
+              "type":"object","properties":{"sku":{"type":"string"},"qty":{"type":"integer","minimum":1}},
+              "required":["sku","qty"],"additionalProperties":false}},
+            "cod":{"type":"boolean"}}, "required":["items"], "additionalProperties":false }
+    scenarios:
+      - name: created-cod
+        priority: 10
+        match: { body: { cod: { $eq: true } } }
+        status: 201
+        latency_ms: 120
+        body: { orderId: "ord-{{now.iso}}", status: "created" }
+      - name: reject-oos
+        priority: 20
+        match: { body: { "items[0].sku": { $in: ["SKU-OUT-1", "SKU-OUT-2"] } } }
+        status: 409
+        body: { error: "out of stock" }
