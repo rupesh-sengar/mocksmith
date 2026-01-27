@@ -6,9 +6,10 @@ import (
 	"regexp"
 	"strings"
 
-	jsonschema "github.com/santhosh-tekuri/jsonschema/v5"
 	"mocksmith/internal/config"
 	"mocksmith/internal/snapshot"
+
+	jsonschema "github.com/santhosh-tekuri/jsonschema/v5"
 )
 
 func Build(cfg *config.Config) (*snapshot.Snapshot, error) {
@@ -28,7 +29,14 @@ func Build(cfg *config.Config) (*snapshot.Snapshot, error) {
 	}
 
 	for _, rc := range cfg.Routes {
-		re, names := compilePath(rc.PathTemplate)
+		pathTemplate := strings.TrimSpace(rc.PathTemplate)
+		if pathTemplate == "" {
+			pathTemplate = strings.TrimSpace(rc.Path)
+		}
+		if pathTemplate == "" {
+			return nil, fmt.Errorf("route missing path_template/path for %s", strings.ToUpper(rc.Method))
+		}
+		re, names := compilePath(pathTemplate)
 
 		var reqSch *jsonschema.Schema
 		if rc.Schemas != nil && strings.TrimSpace(rc.Schemas.RequestJSONSchema) != "" {
@@ -43,7 +51,7 @@ func Build(cfg *config.Config) (*snapshot.Snapshot, error) {
 
 		cr := snapshot.CompiledRoute{
 			Method:       strings.ToUpper(rc.Method),
-			PathTemplate: rc.PathTemplate,
+			PathTemplate: pathTemplate,
 			PathRE:       re,
 			ParamNames:   names,
 			Strict:       rc.Strict,
@@ -112,5 +120,15 @@ func compilePath(tpl string) (*regexp.Regexp, []string) {
 	return regexp.MustCompile(b.String()), names
 }
 
-func ifZero(v, alt int) int { if v == 0 { return alt }; return v }
-func ifEmpty(v, alt string) string { if strings.TrimSpace(v) == "" { return alt }; return v }
+func ifZero(v, alt int) int {
+	if v == 0 {
+		return alt
+	}
+	return v
+}
+func ifEmpty(v, alt string) string {
+	if strings.TrimSpace(v) == "" {
+		return alt
+	}
+	return v
+}

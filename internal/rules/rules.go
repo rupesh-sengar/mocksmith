@@ -1,16 +1,16 @@
 package rules
 
 import (
+	"fmt"
+	"mocksmith/internal/config"
+	"mocksmith/internal/snapshot"
 	"net/http"
 	"net/url"
 	"regexp"
 	"sort"
 	"strconv"
 	"strings"
-	"fmt"
 	"time"
-	"mocksmith/internal/config"
-	"mocksmith/internal/snapshot"
 )
 
 var idxRe = regexp.MustCompile(`^(.+)\[(\d+)\]$`)
@@ -181,4 +181,5 @@ func weightedPick(list []snapshot.CompiledScenario) snapshot.CompiledScenario {
 
 // small rand without importing math/rand here
 var seed = time.Now().UnixNano()
+
 func randInt(n int) int { seed = (1103515245*seed + 12345) & 0x7fffffff; return int(seed % int64(n)) }

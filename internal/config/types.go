@@ -16,6 +16,7 @@ type RateLimitCfg struct {
 type RouteCfg struct {
 	Method       string        `yaml:"method" json:"method"`
 	PathTemplate string        `yaml:"path_template" json:"path_template"`
+	Path         string        `yaml:"path" json:"path"`
 	Strict       bool          `yaml:"strict" json:"strict"`
 	Schemas      *SchemasCfg   `yaml:"schemas" json:"schemas"`
 	Scenarios    []ScenarioCfg `yaml:"scenarios" json:"scenarios"`
