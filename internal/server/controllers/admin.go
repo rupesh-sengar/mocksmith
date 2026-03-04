@@ -5,16 +5,18 @@ import (
 
 	"github.com/gin-gonic/gin"
 
+	"mocksmith/internal/db"
 	"mocksmith/internal/server/services"
 	"mocksmith/internal/server/store"
 )
 
 type AdminController struct {
-	service *services.AdminService
+	service         *services.AdminService
+	projectsService *services.ProjectsService
 }
 
-func NewAdmin(state *store.State) *AdminController {
-	return &AdminController{service: services.NewAdminService(state)}
+func NewAdmin(state *store.State, repo *db.Repo) *AdminController {
+	return &AdminController{service: services.NewAdminService(state), projectsService: services.NewProjectsService(repo)}
 }
 
 func (a *AdminController) Import(c *gin.Context) {

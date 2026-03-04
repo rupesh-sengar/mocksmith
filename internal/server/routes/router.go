@@ -6,6 +6,7 @@ import (
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
 
+	"mocksmith/internal/db"
 	"mocksmith/internal/server/controllers"
 	"mocksmith/internal/server/middleware"
 	"mocksmith/internal/server/store"
@@ -14,6 +15,7 @@ import (
 type Dependencies struct {
 	State    *store.State
 	AdminKey string
+	Repo     *db.Repo
 }
 
 func Register(r *gin.Engine, deps Dependencies) {
@@ -30,7 +32,7 @@ func Register(r *gin.Engine, deps Dependencies) {
 
 	r.Use(cors.New(corsCfg))
 
-	admin := controllers.NewAdmin(deps.State)
+	admin := controllers.NewAdmin(deps.State, deps.Repo)
 	runtime := controllers.NewRuntime(deps.State)
 
 	adm := r.Group("/admin")
@@ -41,6 +43,9 @@ func Register(r *gin.Engine, deps Dependencies) {
 		adm.GET("/routes", admin.Routes)
 		adm.GET("/openapi", admin.OpenAPI)
 		adm.GET("/logs", admin.Logs)
+		adm.GET("/projects/:id", admin.GetProject)
+		adm.POST("/projects", admin.CreateProject)
+		adm.GET("/projects", admin.GetProjects)
 	}
 
 	rt := r.Group("/mock/:project/:env")
